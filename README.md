@@ -17,8 +17,8 @@ This project is implemented with Python version >= 3.10 and CUDA version >= 11.3
 
 It is recommended to follow the steps below to configure the environment:
 ```
-conda create -n ffdbackbone python=3.10
-conda activate ffdbackbone
+conda create -n tfcu python=3.10
+conda activate tfcu
 pip install torch==1.13.0+cu116 torchvision==0.14.0+cu116 -f https://download.pytorch.org/whl/torch_stable.html
 pip install -r requirements.txt
 ```
