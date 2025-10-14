@@ -1,0 +1,172 @@
+seed: 1234
+torch_home: 
+
+method:  FaceForensics_c23
+compression: c23
+checkpoints_dir: checkpoints
+name: ${model.label}_${model.name}
+exam_dir: ${checkpoints_dir}/${name}
+is_aligned: True
+align_type: com #ftcn
+
+transform_params:
+  image_size: 224
+  mean: [0.485, 0.456, 0.406]
+  std: [0.229, 0.224, 0.225]
+  # type: RGBShift
+  # level: 1
+
+train:
+  batch_size: 2
+  num_workers: 8
+  print_info_step_freq: 10
+  save_model_interval: 10
+  max_epoches: 5
+  use_warmup: False
+  warmup_epochs: 0
+  last_epoch_max_celeb_auc: 0.0
+  last_epoch_max_ff_auc: 0.0
+  last_epoch_max_dfdc_auc: 0.0
+  dataset:
+    name: Video_dataset_rec_withlm
+    params:
+      root: ../datasets/ffd-video-data-a/train/
+      file_list:  ../datasets/dataset_list_v1/
+      method: ${method}
+      compression: ${compression}
+      split: train
+      num_segments: 4 #8
+      # diff_aug: False
+      # diff_cut: False
+      sparse_span: 100
+      is_aligned: ${is_aligned}
+      align_type: ${align_type}
+      cutout: True #True
+      is_sbi: False
+      # sbi_ratio: 0.5
+      image_size: ${transform_params.image_size}
+
+test:
+  batch_size: 4
+  num_workers: ${train.num_workers}
+  dataset:
+    name: Video_dataset_ec_withlm
+    params:
+      root: ../datasets/ffd-video-data-at/test/
+      file_list:  ../datasets/dataset_list_v1/
+      method:  ${method}  #FF-ALL 
+      compression: ${compression}
+      split: test
+      num_segments: 4
+      clip_num: 32
+      sparse_span: 100
+      is_aligned: ${train.dataset.params.is_aligned}
+      cutout: False
+      is_sbi: False
+      align_type: ${align_type}
+      image_size: ${transform_params.image_size}
+
+final_test:
+  batch_size: 4
+  num_workers: ${test.num_workers}
+  dataset:
+    name: Video_dataset_ec_withlm
+    params:
+      root: ../datasets/ffd-video-data-at/test/
+      file_list:  ../datasets/dataset_list_v1/
+      method: ALL
+      # test_method: ALL
+      compression: ${compression}
+      split: test
+      clip_num: 32
+      is_sbi: False
+      num_segments: 4
+      sparse_span: ${test.dataset.params.sparse_span}
+      is_aligned: ${train.dataset.params.is_aligned}
+      align_type: ${align_type}
+      image_size: ${transform_params.image_size}
+      # workspace: ouc
+
+model:
+  name:  TFCU_Model
+  label:  Test
+  params:
+    image_size: ${transform_params.image_size}
+    num_segments: ${train.dataset.params.num_segments}
+    tubeletsize: 4
+    feature_dim: 768
+    target_layer: 0
+    sim_loss: cos
+  resume: Stage1.tar # checkpoints/BEiT_CA/ckpt/Final-Epoch-50-FFACC-0.9686-FFAUC-0.9932-CelebACC-0.8456-CelebAUC-0.9259-DFDCACC-0.7497-DFDCAUC-0.8478.tar
+  only_resume_model: True
+  not_resume_layer_names: 
+  # resume2: /SSD0/guozonghui/project/FFD/BEiT_v2/state_dict/SAM2_module_ffdfintuned-pretrained.pth
+# /home/guozonghui/data1/project/01-FFD/ffd_vit6/MAE_VQKD_skip_300.tar
+# 73:Final-Epoch-50-FFACC-0.9643-FFAUC-0.9926-CelebACC-0.8610-CelebAUC-0.9327-DFDCACC-0.7608-DFDCAUC-0.8526.tar #
+visualizer:
+  display_id: 0
+  display_server: 127.0.0.1
+  display_port: 20023
+  display_env: ${name}
+  display_ncols: 1
+  display_winsize: ${transform_params.image_size}
+  checkpoints_dir: ${checkpoints_dir}
+  use_wandb: False
+  wandb_project_name: ${visualizer.display_env}
+  name: ${name}
+  no_html: False
+  display_freq: 10
+
+optimizer:
+  type: N #SAM
+  name: lamb # lion # AdamW # adadelta # AdamW # adadelta #lamb #AdamW #Adam  # SAM   #Adam
+  params:
+    lr: 1e-4 #1e-4  #1e-4
+    #AdamW
+    opt: ${optimizer.name}
+    weight_decay:  0.05 # 0.1 # 0.05  #1.0e-5
+    momentum: 0.9
+    clip_mode: norm
+    # opt_eps: none
+    # opt_betas: none
+    # clip_grad: none
+    layer_decay: .75
+
+loss:
+  name: CrossEntropyLoss
+  params:
+    # reduction: none
+
+scheduler:
+  # name: linear
+  # decay_epochs: 40
+  # decay_rates: [0.1, 0.05]
+  # epochs: ${train.max_epoches}
+
+  # name: piecewise
+  # decay_epochs: [10, 30, 40]
+  # decay_rates: [0.5, 0.1, 0.05]
+  # name: piecewise
+  # decay_epochs: [5, 20]
+  # decay_rates: [0.1, 0.05]
+  sched: cosine # cosine
+  lr: ${optimizer.params.lr}
+  # lr_noise: none
+  lr_noise_pct: 0.67
+  lr_noise_std: 1.0
+  lr_cycle_mul: 1.0
+  lr_cycle_decay: 0.5
+  lr_cycle_limit: 1
+  lr_k_decay: 1.0
+  warmup_lr: 1e-6
+  min_lr: 5e-5  # 1e-5
+  epochs: ${train.max_epoches}
+  warmup_epochs: 1
+  # grad-accum-steps: 1
+  # epoch-repeats: 0
+  # start-epoch: none
+  # decay-milestones: [40,50]
+  # decay-epochs: 40
+  cooldown_epochs: 0 #1 #5
+  # patience-epochs: 10
+  # decay-rate: 0.1
