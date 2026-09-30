@@ -34,13 +34,13 @@ Before training, follow the steps below to prepare the data:
 
 ### Quickly Inference
 
-Download weights from [Baidu Cloud(code: ffvd)](https://pan.baidu.com/s/1CvnxPqZ9I8KrEvE9IQRJ4A) and put it into 'checkpoints/Final_TFCU_Model/ckpt'.
+Download weights from [Baidu Cloud(code: ffvd)](https://pan.baidu.com/s/1TI2fP5qmBo0s5SLm4I-Wdg) and put it into 'checkpoints/Final_TFCU_Model/ckpt'.
 
 Infer a single video: Run the ```python Inference_demo.py```.
 
 ###  Evaluation
 
-Download weights from [Baidu Cloud(code: ffvd)](https://pan.baidu.com/s/1CvnxPqZ9I8KrEvE9IQRJ4A) and put it into 'checkpoints/Final_TFCU_Model/ckpt' . Then run:
+Download weights from [Baidu Cloud(code: ffvd)](https://pan.baidu.com/s/1TI2fP5qmBo0s5SLm4I-Wdg) and put it into 'checkpoints/Final_TFCU_Model/ckpt' . Then run:
 
 ```
 bash test.sh 0 1 12345 checkpoints/Final_TFCU_Model/video_level_c_lm.yaml
